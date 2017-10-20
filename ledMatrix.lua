@@ -3,24 +3,24 @@ local matrix_count = 25
 local led_offset = 4
 local leds = Ledbar.new(led_count)
 local colors = {	purple = 	{r=1, g=0, b=1}, 
-			cyan = 		{r=0, g=1, b=1}, 
-			yellow = 	{r=1, g=1, b=0}, 
-			blue = 		{r=0, g=1, b=0}, 
-			red = 		{r=1, g=0, b=0}, 
-			green = 	{r=0, g=1, b=0}, 
-			white = 	{r=1, g=1, b=1}, 
-			black = 	{r=0, g=0, b=0}	}
+					cyan = 		{r=0, g=1, b=1}, 
+					yellow = 	{r=1, g=1, b=0}, 
+					blue = 		{r=0, g=1, b=0}, 
+					red = 		{r=1, g=0, b=0}, 
+					green = 	{r=0, g=1, b=0}, 
+					white = 	{r=1, g=1, b=1}, 
+					black = 	{r=0, g=0, b=0}	}
 
-local dig = {	[0] = {1, 2, 3, 6, 8, 11, 13, 16, 18, 21, 22, 23},
-		[1] = {2, 6, 7, 12, 17, 21, 22, 23},
-		[2] = {1, 2, 3, 8, 11, 12, 13, 16, 21, 22, 23},
-		[3] = {1, 2, 3, 8, 11, 12, 13, 18, 21, 22, 23},
-		[4] = {1, 3, 6, 8, 11, 12, 13, 18, 23},
-		[5] = {1, 2, 3, 6, 11, 12, 13, 18, 21, 22, 23},	}
+local dig = {	{3, 7, 8, 13, 18, 22, 23, 24},
+				{2, 3, 4, 9, 12, 13, 14, 17, 22, 23, 24},
+				{2, 3, 4, 9, 12, 13, 14, 19, 22, 23, 24},
+				{2, 4, 7, 9, 12, 13, 14, 19, 24},
+				{2, 3, 4, 7, 12, 13, 14, 19, 22, 23, 24},	
+				[0] = {2, 3, 4, 7, 9, 12, 14, 17, 19, 22, 23, 24} }
 
 local ledMatrix = {}
 
-for i = 0, matrix_count, 1 do
+for i = 1, matrix_count + 1, 1 do
 	ledMatrix[i] = colors.black
 end
 
@@ -54,19 +54,19 @@ end
 
 local function updateMatrix()
 	for i = led_offset, led_count - 1, 1 do
-		leds:set(i, ledMatrix[i-led_offset])
+		leds:set(i, ledMatrix[i-led_offset + 1])
 	end
 end
 
 local function setPixelMatrix( x, y, colors )
 	i = y * 5 + x
 	if i < 29 and i > 0 then 
-	ledMatrix [i] = colors
+		ledMatrix [i] = colors
 	end
 end
 
 local function fillMatrix( colors )
-	for i = 0, matrix_count, 1 do
+	for i = 1, matrix_count + 1, 1 do
 		ledMatrix [i] = colors
 	end
 end
