@@ -24,7 +24,7 @@ for i = 1, matrix_count + 1, 1 do
 	ledMatrix[i] = colors.black
 end
 
-function HSVToRGB( hue, saturation, value )
+local function HSVToRGB( hue, saturation, value )
 
 	if saturation == 0 then
 		return value
@@ -59,8 +59,8 @@ local function updateMatrix()
 end
 
 local function setPixelMatrix( x, y, colors )
-	i = y * 5 + x
-	if i < 29 and i > 0 then 
+	i = (y - 1) * 5 + x
+	if i < 29 and i > 0 then 		-- if ledMatrix [i]  then; if i < 26 and i > 0 then
 		ledMatrix [i] = colors
 	end
 end
@@ -71,7 +71,7 @@ local function fillMatrix( colors )
 	end
 end
 
-local function setNum( x, colors )
+local function setDig( x, colors )
 	i = 1
 	repeat 
 		ledMatrix [dig[x][i]] = colors
@@ -79,18 +79,26 @@ local function setNum( x, colors )
 	until dig[x][i] == nil
 end
 
+--[[
+local function setDig( x, colors )
+	for i, v in ipairs(dig[x]) do
+		ledMatrix[v] = colors
+	end
+end 
+]]--
+
 function callback( event )
 end
 
 
 function loop() 
 
-	colors.new = {}
+	colors.any = {}
 
 	for i = 0, 5, 1 do
 		for col = 0, 360, 1 do
-			colors.new.r, colors.new.g, colors.new.b = HSVToRGB( col, 1, 0.1 )
-			setNum (i, colors.new)
+			colors.any.r, colors.any.g, colors.any.b = HSVToRGB( col, 1, 0.1 )
+			setDig (i, colors.any)
 			updateMatrix()
 			--sleep(0.01)
 		end
