@@ -60,7 +60,7 @@ end
 
 local function setPixelMatrix( x, y, colors )
 	i = (y - 1) * 5 + x
-	if i < 29 and i > 0 then 		-- if ledMatrix [i]  then; if i < 26 and i > 0 then
+	if ledMatrix [i] then 
 		ledMatrix [i] = colors
 	end
 end
@@ -71,21 +71,12 @@ local function fillMatrix( colors )
 	end
 end
 
-local function setDig( x, colors )
-	i = 1
-	repeat 
-		ledMatrix [dig[x][i]] = colors
-		i = i + 1
-	until dig[x][i] == nil
-end
 
---[[
 local function setDig( x, colors )
-	for i, v in ipairs(dig[x]) do
+	for _, v in ipairs(dig[x]) do
 		ledMatrix[v] = colors
 	end
 end 
-]]--
 
 function callback( event )
 end
