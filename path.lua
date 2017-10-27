@@ -1,4 +1,4 @@
-function dump(o)
+local function dump(o)
    if type(o) == 'table' then
       local s = '{ '
       for k,v in pairs(o) do
@@ -13,7 +13,7 @@ end
 
 Ev = {ALTITUDE_REACHED = 61, POINT_REACHED = 21, COPTER_LANDED = 23}
 
-Path = {}
+local Path = {}
 
 function Path.new()
 	local obj = { point = { [0] = {} }, state = 0 } 
@@ -39,7 +39,7 @@ end
 
 
 function Path:addFuncForPoint( _func, point_index )
-	if point_index <= #self.point then
+	if self.point[point_index] then
 		self.point[point_index].func = _func
 	end
 end
@@ -105,11 +105,11 @@ function Path:eventHandler( e )
 end
 
 
-function callback( event )
+local function callback( event )
 	pn:eventHandler(event)
 end
 
-function loop()
+local function loop()
 end
 
 -- ###### ^ Module above ^ ######
