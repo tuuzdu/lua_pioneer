@@ -12,7 +12,11 @@ local function dump(o)
 end
 
 
-local boardNumber = boardNumber
+local board_number = boardNumber
+local start_formations = false
+local start_init_pose = false
+local time_delta = 0
+local time_start_global = 0
 
 --local delta = TimeInfo.new("TimeDelta")
 --local launch = TimeInfo.new("LaunchTime")
@@ -76,40 +80,59 @@ Trajectories = {
 
 
 --print(dump(Trajectories))
-print(Trajectories[1][2][1])
-print(Trajectories.initial_pose[1][1])
+--print(Trajectories[1][2][1])
+--print(Trajectories.initial_pose[1][1])
 
+local function redLeds()
+	for i = 0, led_count - 1, 1 do
+		leds:set(i, {r=1, g=0, b=0})
+	end
+end
 
+local function setFormation( pose )
+	if pose.initial_pose then
+		ap.goToLocalPoint(	
+			x = pose.initial_pose[board_number][1],
+			y = pose.initial_pose[board_number][2],
+			z = pose.initial_pose[board_number][3] )
+			--time = {} )
+	end
+end
 
 function callback(event)
---[[
+
 	if (event == Ev.SHOCK) then
-		allLED(1,0,0)
-	end
+		redLeds()
 
-	if (event == Ev.CONTROL_FAIL) then
-		allLED(1,0,0)
-	end
+	elseif (event == Ev.CONTROL_FAIL) then
+		redLeds()
 
-	if (event == Ev.SYNC_START) then
-		LEDGreen()
-		start = false
-		action[curr_state]()		
-	end
+	elseif (event == Ev.SYNC_START) then
+		if start_formations then
+			ap.push(Ev.MCE_LANDING)
+		else
+			ap.push(Ev.MCE_PREFLIGHT)
+			sleep(2)
+			ap.push(Ev.MCE_TAKEOFF)
 
-	if (event == Ev.POINT_REACHED) then
-		LEDRed()
-	end
+			time_start_global = launch:retrieve()		
+		end
 
-	if (event == Ev.POINT_DECELERATION) then
-		--LEDBlue()
+	elseif (event == Ev.POINT_REACHED) then
+		sleep (2)
+		if start_init_pose then
+			start_init_pose = false
+			start_formations = true
+		end
+
+	elseif (event == Ev.POINT_DECELERATION) then
+		
+
+	elseif (event == Ev.ALTITUDE_REACHED) then
+		start_init_pose = true
+		ap.updateYaw(0.001, 0) -- 0.001 ???
+		setFormation(Trajectories.initial_pose)
 	end
-	if (event == Ev.ALTITUDE_REACHED) then
-		LEDRed()
-		ap.updateYaw(0.001, 0)
-		start = true
-	end
-]]--
 end
 
 
