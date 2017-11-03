@@ -11,67 +11,60 @@ local colors = {	purple = 	{r=1, g=0, b=1},
 					white = 	{r=1, g=1, b=1}, 
 					black = 	{r=0, g=0, b=0}	}
 
-
--- local ledMatrix = {}
-
--- for i = 1, matrix_count + 1, 1 do
--- 	ledMatrix[i] = colors.black
--- end
-
 local board_number = 1  ---boardNumber
 local start_formations = false
 local start_init_pose = false
-local time_delta = 0
+-- local time_delta = 0
 local time_start_global = 0
 local time_transition = 6
-
-
 local delta = TimeInfo.new("TimeDelta")
 local launch = TimeInfo.new("LaunchTime")
-
-
 
 -- forms[a][b][c], где a - номер формации, b - номер борта, с - соответственно x, y, z, A, B
 -- forms[0][b][c] - начальная формация, где b - номер борта, с - соответственно x, y, z
 local forms = {
-[0] = {
-{0, -0.6, 1.4}
-},
-{
-xy_first = false,
-{0, -1.4, 2.5, 0, 0.624402}
-},
-{
-xy_first = true,
-{0, -0.6, 1.4, 0, 0.67049}
-},
-{
-xy_first = false,
-{0.00666667, -1.4, 2.5, 0, 0}
-},
-{
-xy_first = true,
-{0, -0.6, 1.4, 0, 0}
-},
-{
-xy_first = false,
-{0, -1.4, 2.5, 0, 0.67049}
-},
-{
-xy_first = true,
-{0, -0.6, 1.4, 0, 0.67049}
-},
-{
-xy_first = false,
-{0.3, -1.4, 2.5, 0, 0}
-},
-{
-xy_first = true,
-{0, -0.6, 1.4, 0, 0}
-}
-}
+	[0] = { 
 
+		{0, 0, 0.5},
 
+	},
+	{ 
+		xy_first = false, 
+
+		{1, 1, 1.2, 0, 0},
+
+	},
+	{ 
+		xy_first = true, 
+
+		{0, 0, 0.5, 0, 0},
+
+	},
+	{ 
+		xy_first = false, 
+
+		{-1, 1, 1.2, 0, 0},
+
+	},
+	{ 
+		xy_first = true, 
+
+		{0, 0, 0.5, 0, 0},
+
+	},
+	{ 
+		xy_first = false, 
+
+		{1, -1, 1.2, 0, 0},
+
+	},
+	{ 
+		xy_first = true, 
+
+		{0, 0, 0.5, 0, 0},
+
+	}
+}
 
 
 local function setSysLeds( color )
@@ -81,27 +74,14 @@ local function setSysLeds( color )
 end
 
 
--- local function updateMatrix()
--- 	for i = led_offset, led_count - 1, 1 do
--- 		leds:set(i, ledMatrix[i-led_offset + 1])
--- 	end
--- end
-
-
-local function fillMatrix( colors )
+local function fillMatrix( color )
 	for i = led_offset, led_count - 1, 1 do
-		leds:set(i, colors)
+		leds:set(i, color)
 	end
 end
 
 
-
-
--- local function getGlobalTime()	
--- 	return time() + delta:retrieve()
--- end
-
-local function setInitFormation( pose )
+local function initFormation( pose )
 		ap.goToLocalPoint({
 			x = pose[1],
 			y = pose[2],
@@ -110,7 +90,8 @@ local function setInitFormation( pose )
 			--time = {} )
 end
 
-local function setFormationXYAfter( curr_fr, t )
+
+local function formationXY( curr_fr, t, sequence )
 	local xi0 = forms[curr_fr - 1][board_number][1]
 	local xi1 = forms[curr_fr][board_number][1]
 	local yi0 = forms[curr_fr - 1][board_number][2]
@@ -124,46 +105,20 @@ local function setFormationXYAfter( curr_fr, t )
 	ap.goToLocalPoint({
 		x = xi,
 		y = yi,
-		z = forms[curr_fr][board_number][3] 
+		z = forms[curr_fr - sequence][board_number][3] 
 	})
 		--time = {} 
 end
 
-local function setFormationXYFirst( curr_fr, t )
-	local xi0 = forms[curr_fr - 1][board_number][1]
-	local xi1 = forms[curr_fr][board_number][1]
-	local yi0 = forms[curr_fr - 1][board_number][2]
-	local yi1 = forms[curr_fr][board_number][2]
-	local Ai = forms[curr_fr][board_number][4]
-	local Bi = forms[curr_fr][board_number][5]
 
-	local xi = xi0 + (xi1 - xi0) * t + Ai * (t^2 - t)
-	local yi = yi0 + (yi1 - yi0) * t + Bi * (t^2 - t)
-
+local function formationZ( curr_fr, sequence )
 	ap.goToLocalPoint({
-		x = xi,
-		y = yi,
-		z = forms[curr_fr - 1][board_number][3] 
-	})
-		--time = {} 
-end
-
-local function setFormationZAfter( curr_fr )
-	ap.goToLocalPoint({
-		x = forms[curr_fr][board_number][1],
-		y = forms[curr_fr][board_number][2],
-		z = forms[curr_fr][board_number][3] 
-	})
-
-end
-
-local function setFormationZFirst( curr_fr )
-	ap.goToLocalPoint({
-		x = forms[curr_fr - 1][board_number][1],
-		y = forms[curr_fr - 1][board_number][2],
+		x = forms[curr_fr - sequence][board_number][1],
+		y = forms[curr_fr - sequence][board_number][2],
 		z = forms[curr_fr][board_number][3] 
 	})
 end
+
 
 function callback( event )
 
@@ -177,8 +132,8 @@ function callback( event )
 		setSysLeds(colors.cyan)
 
 		if start_formations then
-			ap.push(Ev.MCE_LANDING)
-		else
+		-- 	ap.push(Ev.MCE_LANDING)
+		-- else
 			time_start_global = launch:retrieve() + 2 * time_transition
 			ap.push(Ev.MCE_PREFLIGHT)
 			sleep(1)
@@ -191,53 +146,59 @@ function callback( event )
 			start_formations = true
 		end
 
-	-- elseif (event == Ev.POINT_DECELERATION) then
-		
-
 	elseif (event == Ev.ALTITUDE_REACHED) then
 		start_init_pose = true
 		--ap.updateYaw(0.001, 0) 
-		setInitFormation(forms[0][board_number])
+		initFormation(forms[0][board_number])
 	end
 end
 
-local mass_color = {colors.green, colors.yellow, colors.blue, colors.red, colors.purple, colors.white, colors.cyan, colors.red}
-
+--local mass_color = {colors.green, colors.yellow, colors.blue, colors.red, colors.purple, colors.white, colors.cyan, colors.red}
 
 function loop() 
 
 	if start_formations then
 
-		local time_from_start = math.abs( time() + delta:retrieve() - time_start_global)
+		local time_from_start = math.abs(time() + delta:retrieve() - time_start_global)
 
-		local current_formation = math.floor(time_from_start / (2 * time_transition)) + 1
-		--local current_formation = math.floor(time_from_start / (2 * time_transition))
-		--current_formation = (current_formation % 6) + 1
+		local t_x1 = time_from_start / (2 * time_transition)
+		local t_x2 = time_from_start / time_transition
 
-		local t_formation = (time_from_start / (2 * time_transition)) - math.floor(time_from_start / (2 * time_transition)) 
-		local t = (time_from_start / time_transition) - math.floor(time_from_start / time_transition)
+		local current_formation = math.floor(t_x1) + 1
+		local t_formation = t_x1 - current_formation - 1
+		local t = t_x2 - math.floor(t_x2)
 
 		if current_formation >= (#forms + 1) then
+			start_formations = false
 			ap.push(Ev.MCE_LANDING)
 		end
 
-		-- setSysLeds(mass_color[current_formation])
-		fillMatrix(mass_color[current_formation])
+		--setSysLeds(mass_color[current_formation])
+		--fillMatrix(mass_color[current_formation])
 
+		if t_formation < 0.5 and start_formations then
 
-		if t_formation < 0.5 then
 			if forms[current_formation].xy_first then
-				setFormationXYFirst( current_formation, t ) 
+				formationXY( current_formation, t, 1 ) 
 			else
-				setFormationZFirst( current_formation )
+				formationZ( current_formation, 1 )
 			end
-		else
+
+			fillMatrix({r = 0, g = 0, b = 0})
+
+		elseif start_formations then
+
 			if forms[current_formation].xy_first then
-				setFormationZAfter( current_formation )
+				formationZ( current_formation, 0 )
 			else
-				setFormationXYAfter( current_formation, t ) 
+				formationXY( current_formation, t, 0 ) 
 			end
+
+			fillMatrix({r = ((t_formation - 0.5) * 2), g = 0, b = 1})
+
 		end
-		sleep (0.05)
 	end
+
+	sleep (0.05)
+
 end
