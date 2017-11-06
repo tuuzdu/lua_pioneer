@@ -24,7 +24,7 @@ local start_formations = false
 local start_init_pose = false
 local time_delta = 0
 local time_start_global = 0
-local time_transition = 6
+local time_transition = 5
 
 
 local delta = TimeInfo.new("TimeDelta")
@@ -71,6 +71,11 @@ xy_first = true,
 {-0.6, 0.6, 1, 0, 0}
 }
 }
+
+
+for i = #forms - 1, 1, -2 do
+	table.insert(forms, i, forms[i])
+end
 
 
 local function setSysLeds( color )
@@ -174,6 +179,7 @@ function callback( event )
 		setSysLeds(colors.cyan)
 
 		if start_formations then
+			start_formations = false
 			ap.push(Ev.MCE_LANDING)
 		else
 			time_start_global = launch:retrieve() + 2 * time_transition
