@@ -5,7 +5,7 @@ local leds = Ledbar.new(led_count)
 local colors = {	purple = 	{r=1, g=0, b=1}, 
 					cyan = 		{r=0, g=1, b=1}, 
 					yellow = 	{r=1, g=1, b=0}, 
-					blue = 		{r=0, g=1, b=0}, 
+					blue = 		{r=0, g=0, b=1}, 
 					red = 		{r=1, g=0, b=0}, 
 					green = 	{r=0, g=1, b=0}, 
 					white = 	{r=1, g=1, b=1}, 
