@@ -1,42 +1,50 @@
 
+-- Скрипт реализует полет по заданию. Позволяет добавлять полет в точку, взлет и посадку, а также выполнять функции, после этих действий.
+
+-- Класс Path
 local Path = {}
 
+-- Создает новый объект класса Path
 function Path.new()
 	local obj = { point = { [0] = {} }, state = 0 } 
 	Path.__index = Path 
 	return setmetatable( obj, Path )
 end
 
-
-function Path:addWaypoint( _x, _y, _z )
-	local point = {x = _x, y = _y, z = _z, waypoint = true}
+-- Добавляет точку пути. Аргументы: x, y, z - координаты в метрах; func - функция, выполняемая после достижения точки (необязательный аргумент).
+function Path:addWaypoint( _x, _y, _z, _func )
+	local point = { x = _x, y = _y, z = _z, waypoint = true }
 	table.insert( self.point, point )
+	if _func then
+		self.point[#self.point].func = _func
+	end
 end
 
-
-function Path:addTakeoff()
+-- Добавляет взлет на высоту, указанную в параметрах (Flight_common_takeoffAltitude). Аргументы: func - функция, выполняемая после достижения высоты взлета (необязательный аргумент).
+function Path:addTakeoff( _func )
 	table.insert( self.point, { takeoff = true } )
+	if _func then
+		self.point[#self.point].func = _func
+	end
 end
 
-
-function Path:addLanding()
+-- Добавляет посадку. Аргументы: func - функция, выполняемая после приземления (необязательный аргумент).
+function Path:addLanding( _func )
 	table.insert( self.point, { landing = true } )
+	if _func then
+		self.point[#self.point].func = _func
+	end
 end
 
-
+-- Добавляет функцию к указанному номеру точки пути. Аргументы: func - функция, выполняемая после действия; point_index - номер точки пути.
 function Path:addFuncForPoint( _func, point_index )
-	if self.point[point_index] then
+	if self.point[point_index] and _func then
 		self.point[point_index].func = _func
 	end
 end
 
-
-function Path:addFunc( _func )
-	self.point[#self.point].func = _func
-end
-
-
-function Path:Start()
+-- Запуск выполнения полетного задания
+function Path:start()
 	sleep(1)
 	if self.point[1].takeoff then
 		self.state = 1
@@ -46,7 +54,7 @@ function Path:Start()
 	end
 end
 
-
+-- Обработчик событий объекта пути. Должен быть добавлен в function callback( event ) с передачей аргумента event. Как в примере ниже.
 function Path:eventHandler( e )
 
 	local change_state = false
@@ -88,50 +96,37 @@ function Path:eventHandler( e )
 	end
 end
 
+-- Здесь заканчивается описание класса.
+
+local led_count = 4
+local leds = Ledbar.new(led_count)
+
+local function setSysLeds( color )
+	for i = 0, led_count - 1, 1 do
+		leds:set(i, color)
+	end
+end
 
 function callback( event )
-	pn:eventHandler(event)
+	my_path:eventHandler(event) -- Обработчик событий для объекты my_path
 end
 
 function loop()
 end
 
--- ###### ^ Module above ^ ######
+my_path = Path.new()
 
---[[
-local action = {
-	["ACTION_1"] = function()
-		-- Function block
-	end
-}
+my_path:addTakeoff()
+my_path:addWaypoint(1, 2, 1.2, setSysLeds({r=0, g=0, b=1}))
+my_path:addWaypoint(2, 2, 1.2)
+my_path:addWaypoint(2, 1, 1.2)
+my_path:addLanding()
+my_path:addTakeoff()
+my_path:addWaypoint(2, 2, 1.2)
+my_path:addLanding()
 
-p:addFunc(action["ACTION_1"])
-]]--
+my_path:addFuncForPoint(setSysLeds({r=1, g=1, b=0}), 2)
 
-function func_1 ()
-	local f = "Test function"
-	print(f)
-end
-
-pn = Path.new()
-
-pn:addTakeoff()
-pn:addWaypoint(1, 2, 1.2)
-pn:addWaypoint(2, 2, 1.2)
-pn:addFunc(
-	function()
-		local f = "Test function 2"
-		print(f)
-	end
-	)
-pn:addWaypoint(2, 1, 1.2)
-pn:addLanding()
-pn:addTakeoff()
-pn:addWaypoint(2, 2, 1.2)
-pn:addLanding()
-
-pn:addFuncForPoint(func_1, 8)
-
-pn:Start()
+my_path:start()
 
 

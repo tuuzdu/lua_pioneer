@@ -92,11 +92,11 @@ end
 
 
 local function setInitFormation( pose )
-		ap.goToLocalPoint({
-			x = pose[1],
-			y = pose[2],
-			z = pose[3] 
-		})
+	ap.goToLocalPoint({
+		x = pose[1],
+		y = pose[2],
+		z = pose[3] 
+	})
 end
 
 local function formationXY( curr_fr, t, sequence )

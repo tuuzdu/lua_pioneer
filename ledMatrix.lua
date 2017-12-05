@@ -33,9 +33,9 @@ local function HSVToRGB( hue, saturation, value )
 	local hue_sector = math.floor( hue / 60 )
 	local hue_sector_offset = ( hue / 60 ) - hue_sector
 
-	local p = value * ( 1 - saturation )
-	local q = value * ( 1 - saturation * hue_sector_offset )
-	local t = value * ( 1 - saturation * ( 1 - hue_sector_offset ) )
+	local p = value * (1 - saturation)
+	local q = value * (1 - saturation * hue_sector_offset)
+	local t = value * (1 - saturation * (1 - hue_sector_offset))
 
 	if hue_sector == 0 then
 		return value, t, p
@@ -88,7 +88,7 @@ function loop()
 
 	for i = 0, 5, 1 do
 		for col = 0, 360, 1 do
-			colors.any.r, colors.any.g, colors.any.b = HSVToRGB( col, 1, 0.1 )
+			colors.any.r, colors.any.g, colors.any.b = HSVToRGB(col, 1, 0.1)
 			setDig (i, colors.any)
 			updateMatrix()
 			--sleep(0.01)
