@@ -11,7 +11,7 @@ function Path.new()
 	return setmetatable( obj, Path )
 end
 
--- Добавляет точку пути. Аргументы: x, y, z - координаты в метрах; func - функция, выполняемая после достижения точки (необязательный аргумент).
+-- Добавляет точку пути. Аргументы: x, y, z - координаты в метрах; func - ссылка на функцию, выполняемую после достижения точки (необязательный аргумент).
 function Path:addWaypoint( _x, _y, _z, _func )
 	local point = { x = _x, y = _y, z = _z, waypoint = true }
 	table.insert( self.point, point )
@@ -20,7 +20,7 @@ function Path:addWaypoint( _x, _y, _z, _func )
 	end
 end
 
--- Добавляет взлет на высоту, указанную в параметрах (Flight_common_takeoffAltitude). Аргументы: func - функция, выполняемая после достижения высоты взлета (необязательный аргумент).
+-- Добавляет взлет на высоту, указанную в параметрах (Flight_common_takeoffAltitude). Аргументы: func - ссылка на функцию, выполняемую после достижения высоты взлета (необязательный аргумент).
 function Path:addTakeoff( _func )
 	table.insert( self.point, { takeoff = true } )
 	if _func then
@@ -28,7 +28,7 @@ function Path:addTakeoff( _func )
 	end
 end
 
--- Добавляет посадку. Аргументы: func - функция, выполняемая после приземления (необязательный аргумент).
+-- Добавляет посадку. Аргументы: func - ссылка на функцию, выполняемую после приземления (необязательный аргумент).
 function Path:addLanding( _func )
 	table.insert( self.point, { landing = true } )
 	if _func then
@@ -36,7 +36,7 @@ function Path:addLanding( _func )
 	end
 end
 
--- Добавляет функцию к указанному номеру точки пути. Аргументы: func - функция, выполняемая после действия; point_index - номер точки пути.
+-- Добавляет функцию к указанному номеру точки пути. Аргументы: func - ссылка на функцию, выполняемую после действия; point_index - номер точки пути.
 function Path:addFuncForPoint( _func, point_index )
 	if self.point[point_index] and _func then
 		self.point[point_index].func = _func
@@ -54,7 +54,7 @@ function Path:start()
 	end
 end
 
--- Обработчик событий объекта пути. Должен быть добавлен в function callback( event ) с передачей аргумента event. Как в примере ниже.
+-- Обработчик событий объекта пути. Должен быть добавлен в function callback(event) с передачей аргумента event. Как в примере ниже.
 function Path:eventHandler( e )
 
 	local change_state = false
@@ -96,17 +96,10 @@ function Path:eventHandler( e )
 	end
 end
 
--- Здесь заканчивается описание класса.
+-- Здесь заканчивается описание класса
+--------------------------------------------------------------------------------------------------------------------
 
-local led_count = 4
-local leds = Ledbar.new(led_count)
-
-local function setSysLeds( color )
-	for i = 0, led_count - 1, 1 do
-		leds:set(i, color)
-	end
-end
-
+-- Функция, вызываемая при появлении событий
 function callback( event )
 	my_path:eventHandler(event) -- Обработчик событий для объекты my_path
 end
@@ -114,19 +107,49 @@ end
 function loop()
 end
 
+-- Таблица цветов
+local colors = {	purple = 	{r=1, g=0, b=1}, 
+					cyan = 		{r=0, g=1, b=1}, 
+					yellow = 	{r=1, g=1, b=0}, 
+					blue = 		{r=0, g=0, b=1}, 
+					red = 		{r=1, g=0, b=0}, 
+					green = 	{r=0, g=1, b=0}, 
+					white = 	{r=1, g=1, b=1}, 
+					black = 	{r=0, g=0, b=0}	}
+
+local led_count = 4	-- Количество используемых светодиодов
+local leds = Ledbar.new(led_count)  -- Создает новый Ledbar для управления светодиодами
+
+-- Фукция установки желаемого цвета на светодиодах на плате (четыре штуки). Возвращает ссылку на функцию. Ссылка нужна для передачи функции точке пути.
+local function setSysLeds( color )
+	return function()
+		for i = 0, led_count - 1, 1 do
+			leds:set(i, color)
+		end
+	end
+end
+
+-- Создание ссылок на функции установки желаемого цвета
+red = setSysLeds(colors.red)
+blue = setSysLeds(colors.blue)
+yellow = setSysLeds(colors.yellow)
+
+-- Создание нового объекта Path
 my_path = Path.new()
 
-my_path:addTakeoff()
-my_path:addWaypoint(1, 2, 1.2, setSysLeds({r=0, g=0, b=1}))
-my_path:addWaypoint(2, 2, 1.2)
-my_path:addWaypoint(2, 1, 1.2)
+-- Составление полетного задания
+my_path:addTakeoff(red)
+my_path:addWaypoint(0.5, 0.5, 1, blue)
+my_path:addWaypoint(-0.5, 0.5, 1, red)
+my_path:addWaypoint(0.5, -0.5, 1)
 my_path:addLanding()
 my_path:addTakeoff()
-my_path:addWaypoint(2, 2, 1.2)
+my_path:addWaypoint(0, 0, 1)
 my_path:addLanding()
 
-my_path:addFuncForPoint(setSysLeds({r=1, g=1, b=0}), 2)
+my_path:addFuncForPoint(yellow, 7)
 
+-- Старт выполнения
 my_path:start()
 
 
