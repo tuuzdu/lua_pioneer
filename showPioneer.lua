@@ -115,19 +115,11 @@ local function getPointerLedsMatrix( color )
 		end
 	end
 end
--- Таблица с указателями (как инициализировать автоматически?)
+-- Таблица с указателями 
 local pColors = {}
--- for k, v in pairs(colors) do 
--- 	pColors.k = getPointerLedsMatrix(v)
--- end
-pColors.blue = getPointerLedsMatrix(colors.blue)
-pColors.black = getPointerLedsMatrix(colors.black)
-pColors.purple = getPointerLedsMatrix(colors.purple)
-pColors.cyan = getPointerLedsMatrix(colors.cyan)
-pColors.yellow = getPointerLedsMatrix(colors.yellow)
-pColors.red = getPointerLedsMatrix(colors.red)
-pColors.green = getPointerLedsMatrix(colors.green)
-pColors.white = getPointerLedsMatrix(colors.white)
+for k, v in pairs(colors) do 
+	pColors[k] = getPointerLedsMatrix(v)
+end
 
 
 
