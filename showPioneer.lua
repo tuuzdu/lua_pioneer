@@ -151,7 +151,7 @@ local board_number = boardNumber
 local start_formations = false
 local unpack = table.unpack	
 
-local endWaitingTime = 80
+local endWaitingTime = 75
 -- Таблица с координатами и цветом
 local letters = {
 	{	-- 1 "Р"
@@ -167,7 +167,7 @@ local letters = {
 	},
 	{	-- 2 "О"
 		{-1.3, 1.5, 0.5, getPointerSleep(10), true},
-		{-1.3, -1, 0.6, pColors.white, true},
+		{-1.3, -1, 0.72, pColors.white, true},
 		{-1.3, -1, 1.4, pColors.white, false},
 		{-1.2, -1, 1.5, pColors.white, false},
 		{-0.9, -1, 1.5, pColors.white, false},
@@ -178,7 +178,7 @@ local letters = {
 		{-1.3, -1, 0.6, pColors.black, true},
 		{-1.3, 1.5, 0.5, endWaiting(endWaitingTime), true}
 	},
-	{	-- 2 "С1"
+	{	-- 3 "С1"
 		{-0.6, 0.5, 0.5, getPointerSleep(17), true},
 		{-0.1, -1, 1.4, pColors.blue, true},
 		{-0.2, -1, 1.5, pColors.blue, false},
@@ -191,7 +191,7 @@ local letters = {
 		{-0.6, -1, 0.6, pColors.black, false},
 		{-0.6, 0.5, 0.5, endWaiting(endWaitingTime), true}
 	},
-	{	-- 3 "C2"
+	{	-- 4 "C2"
 		{0.1, 1.5, 0.5, getPointerSleep(24), true},
 		{0.6, -1, 1.4, pColors.blue, true},
 		{0.5, -1, 1.5, pColors.blue, false},
@@ -222,7 +222,6 @@ local letters = {
 		{1.6, -1, 0.8, pColors.red, false},
 		{2.0, -1, 0.8, pColors.red, true},
 		{1.5, -1, 0.5, pColors.black, true},		
-		{1.5, 1.5, 0.5, pColors.black, true},
 		{1.5, 1.5, 0.5, endWaiting(endWaitingTime), true}
 	}
 }
