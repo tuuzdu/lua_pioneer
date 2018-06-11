@@ -1,15 +1,5 @@
-local function dump(o)
-   if type(o) == 'table' then
-      local s = '{ '
-      for k,v in pairs(o) do
-         if type(k) ~= 'number' then k = '"'..k..'"' end
-         s = s .. '['..k..'] = ' .. dump(v) .. ','
-      end
-      return s .. '} '
-   else
-      return tostring(o)
-   end
-end
+-- Testing stuff
+require "c4d_test"
 
 -- Time step is 0.50 s
 -- Number of objects is 10
@@ -20,67 +10,71 @@ local points  =  "\x00\x00\x00\x00\xb4\x00\x00\x00\x3c\x00\x00\x00\x00\x00\xff\x
 	--print (t/1000, x/100, z/100, y/100, r/255, g/255, b/255)
 --end
 
--- local unpack = table.unpack	
-
-local state = {waiting = 1, start = 2}
-
 local Animation = {}
 
-function Animation.new(_pointsStr, _colorsStr)
+function Animation.new(pointsStr, colorsStr)
+
+   local tblUnpack = table.unpack   
+   local strUnpack = string.unpack
+
+   local state = {idle = 1, takeoff = 2, flight = 3}
 
 	local Color = {}
-		Color.colorsStr = _colorsStr
+		Color.colorsStr = colorsStr
 
 	local Point = {}
-		Point.pointsStr = _pointsStr
+		Point.pointsStr = pointsStr
 
-		function Point.getPoint(index)
-			local point = {}
-			point.t, point.x, point.z, point.y, _, _, _, _ = string.unpack('iiiHBBB', Point.pointsStr, 1 + index * string.packsize('iiiHBBB'))
-			point.t = point.t / 1000
-			point.x = point.x / 100
-			point.y = point.y / 100
-			point.z = point.z / 100
-			return point
-		end
+      function Point.getPoint(index)
+         local t, x, y, z
+         t, x, z, y, _, _, _, _ = strUnpack('iiiHBBB', Point.pointsStr, 1 + index * string.packsize('iiiHBBB'))
+         t = t / 1000
+         x = x / 100
+         y = y / 100
+         z = z / 100
+         return t, x, y, z
+      end
 
 	local obj = {}
+      obj.state = 0
+      -- obj.point_index = 0
+      obj.global_time_0 = 0
 
-	function obj.eventHandler(e)
-		if e == Ev.SYNC_START then
-		
+	function obj:eventHandler(e)		
+      local TIME_AFTER_TAKEOFF = 1
+      local TIME_PREPARE_TAKEOFF = 1
+
+      if e == Ev.SYNC_START then
+         self.global_time_0 = getGlobal()
+         self.state = state.takeoff
+         ap.push(Ev.MCE_PREFLIGHT) 
+         sleep(TIME_PREPARE_TAKEOFF)
+         ap.push(Ev.MCE_TAKEOFF) -- Takeoff altitude should be set by AP parameter
+         self.state = state.flight
+         Timer.callAtGlobal(self.global_time_0 + TIME_PREPARE_TAKEOFF + TIME_AFTER_TAKEOFF, function () self:flightLoop(0) end)
 		end
 	end
 
-	function obj.waitingForPlay()
-		obj.state = state.waiting
-
-		print (dump( Point.getPoint(50)) )
-	end
+   function obj:flightLoop(point_index)
+      local t, x, y, z
+      if self.state == state.flight and point_index <= 406 then
+         point_index = point_index + 2
+         t, x, y, z = Point.getPoint(point_index)
+         ap.goToLocalPoint(x, y, z)
+         Timer.callAtGlobal(self.global_time_0 + t, function () self:flightLoop(point_index) end)
+      end
+   end
 
 	Animation.__index = Animation 
 	return setmetatable(obj, Animation)
 end
 
+function callback(event)
+   a:eventHandler(event)
+end
+
+
 a = Animation.new(points)
-a.waitingForPlay()
+print (dump(a))
 
--- function Path:addWaypoint( _x, _y, _z, _func )
--- 	local point = { _x, _y, _z, waypoint = true }
--- 	table.insert( self.point, point )
--- 	if _func then
--- 		self.point[#self.point].func = _func
--- 	end
--- end
-
--- function Path:addTakeoff( _func )
--- 	table.insert( self.point, { takeoff = true } )
--- 	if _func then
--- 		self.point[#self.point].func = _func
--- 	end
--- end
-
--- -- Функция, вызываемая при появлении событий
--- function callback( event )
--- 	my_path:eventHandler(event) -- Обработчик событий для объекты my_path
--- end
+callback(Ev.SYNC_START)
