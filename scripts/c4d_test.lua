@@ -25,7 +25,7 @@ function getGlobal()
 end
 
 
-Ev = {ALTITUDE_REACHED = 61, POINT_REACHED = 21, COPTER_LANDED = 23, MCE_TAKEOFF = 1, MCE_PREFLIGHT = 2}
+Ev = {ALTITUDE_REACHED = 61, POINT_REACHED = 21, COPTER_LANDED = 23, MCE_TAKEOFF = 1, MCE_PREFLIGHT = 2, MCE_LANDING = 3}
 
 ap = {}
 
@@ -36,6 +36,8 @@ function ap.push(e)
       print("MCE_PREFLIGHT")
    elseif e == Ev.POINT_REACHED then
       print("POINT_REACHED")
+   elseif e == Ev.MCE_LANDING then
+      print("MCE_LANDING")
    end
 end
 

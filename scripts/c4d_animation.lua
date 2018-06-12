@@ -12,69 +12,98 @@ local points  =  "\x00\x00\x00\x00\xb4\x00\x00\x00\x3c\x00\x00\x00\x00\x00\xff\x
 
 local Animation = {}
 
-function Animation.new(pointsStr, colorsStr)
+function Animation.new(points_str, colors_str)
 
-   local tblUnpack = table.unpack   
-   local strUnpack = string.unpack
+	local tblUnpack = table.unpack   
+	local strUnpack = string.unpack
 
-   local state = {idle = 1, takeoff = 2, flight = 3}
+	local state = {stop = 0, idle = 1, takeoff = 2, flight = 3, landing = 4}
 
 	local Color = {}
-		Color.colorsStr = colorsStr
+		Color.colors_str_size = string.packsize('iiiHBBB')
+		Color.colors_str = points_str	-- TODO: colors string
+		Color.first_led = 4
+		Color.last_led = 28
+		-- Color.leds = Ledbar.new(29)
+    
+    function Color.getColor(index)
+        local t, r, g, b
+        t, _, _, _, r, g, b, _ = strUnpack('iiiHBBB', Color.colors_str, 1 + index * Color.colors_str_size)
+        t = t / 1000
+        r = r / 255
+        g = g / 255
+        b = b / 255
+        return t, r, g, b
+    end
+
+    function Color.setMatrix(r, g, b)
+		for i = Color.first_led, Color.last_led, 1 do
+			Color.leds:set(i, r, g, b)
+		end
+    end
 
 	local Point = {}
-		Point.pointsStr = pointsStr
+		Point.points_str_size = string.packsize('iiiHBBB')
+		Point.points_str = points_str
 
-      function Point.getPoint(index)
-         local t, x, y, z
-         t, x, z, y, _, _, _, _ = strUnpack('iiiHBBB', Point.pointsStr, 1 + index * string.packsize('iiiHBBB'))
-         t = t / 1000
-         x = x / 100
-         y = y / 100
-         z = z / 100
-         return t, x, y, z
-      end
+    function Point.getPoint(index)
+        local t, x, y, z
+        t, x, y, z, _, _, _, _ = strUnpack('iiiHBBB', Point.points_str, 1 + index * Point.points_str_size)
+        t = t / 1000
+        x = x / 100
+        y = y / 100
+        z = z / 100
+        return t, x, y, z
+    end
 
 	local obj = {}
-      obj.state = 0
-      -- obj.point_index = 0
-      obj.global_time_0 = 0
+    	obj.state = state.stop
+     	obj.global_time_0 = 0
 
-	function obj:eventHandler(e)		
-      local TIME_AFTER_TAKEOFF = 1
-      local TIME_PREPARE_TAKEOFF = 1
+	function obj:eventHandler(e)	
+		if self.state ~= state.stop then	
+	    	local TIME_AFTER_TAKEOFF = 1
+	    	local TIME_PREPARE_TAKEOFF = 1
 
-      if e == Ev.SYNC_START then
-         self.global_time_0 = getGlobal()
-         self.state = state.takeoff
-         ap.push(Ev.MCE_PREFLIGHT) 
-         sleep(TIME_PREPARE_TAKEOFF)
-         ap.push(Ev.MCE_TAKEOFF) -- Takeoff altitude should be set by AP parameter
-         self.state = state.flight
-         Timer.callAtGlobal(self.global_time_0 + TIME_PREPARE_TAKEOFF + TIME_AFTER_TAKEOFF, function () self:flightLoop(0) end)
+	      	if e == Ev.SYNC_START then
+	        	self.global_time_0 = getGlobal() + TIME_PREPARE_TAKEOFF + TIME_AFTER_TAKEOFF
+	        	self.state = state.takeoff
+		        ap.push(Ev.MCE_PREFLIGHT) 
+		        sleep(TIME_PREPARE_TAKEOFF)
+		        ap.push(Ev.MCE_TAKEOFF) -- Takeoff altitude should be set by AP parameter
+		        self.state = state.flight
+		        Timer.callAtGlobal(self.global_time_0, function () self:animLoop(2) end)
+			end
 		end
 	end
 
-   function obj:flightLoop(point_index)
-      local t, x, y, z
-      if self.state == state.flight and point_index <= 406 then
-         point_index = point_index + 2
-         t, x, y, z = Point.getPoint(point_index)
-         ap.goToLocalPoint(x, y, z)
-         Timer.callAtGlobal(self.global_time_0 + t, function () self:flightLoop(point_index) end)
-      end
-   end
+	function obj:animLoop(point_index)
+   		local t, x, y, z
+      	if self.state == state.flight and point_index <= 10 then
+	        t, x, y, z = Point.getPoint(point_index)
+	        point_index = point_index + 2
+	        ap.goToLocalPoint(x, y, z)
+	        Timer.callAtGlobal(self.global_time_0 + t, function () self:animLoop(point_index) end)
+    	else
+    		self.state = state.landing
+    		ap.push(Ev.MCE_LANDING)
+    	end
+   	end
+
+   	function obj:start()
+   		self.state = state.idle
+   	end
 
 	Animation.__index = Animation 
 	return setmetatable(obj, Animation)
 end
 
 function callback(event)
-   a:eventHandler(event)
+   anim:eventHandler(event)
 end
 
-
-a = Animation.new(points)
-print (dump(a))
+anim = Animation.new(points, _)
+anim:start()
+print (dump(anim))
 
 callback(Ev.SYNC_START)
