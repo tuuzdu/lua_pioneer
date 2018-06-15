@@ -31,8 +31,7 @@ function Animation.new(points_str, colors_str)
 		-- Color.leds = Ledbar.new(29)
     
     function Color.getColor(index)
-        local t, r, g, b
-        t, _, _, _, r, g, b, _ = strUnpack('iiiHBBB', Color.colors_str, 1 + index * Color.colors_str_size)
+        local t, _, _, _, r, g, b, _ = strUnpack('iiiHBBB', Color.colors_str, 1 + index * Color.colors_str_size)
         t = t / 1000
         r = r / 255
         g = g / 255
@@ -51,43 +50,43 @@ function Animation.new(points_str, colors_str)
 		Point.points_str = points_str
 
     function Point.getPoint(index)
-        local t, x, y, z
-        t, x, y, z, _, _, _, _ = strUnpack('iiiHBBB', Point.points_str, 1 + index * Point.points_str_size)
+        local t, x, y, z = strUnpack('iiiHBBB', Point.points_str, 1 + index * Point.points_str_size)
         t = t / 1000
-        x = x / 10000
-        y = y / 10000
-        z = z / 10000
+        x = x / 100
+        y = y / 100
+        z = z / 100
         return t, x, y, z
     end
 
 	local obj = {}
     	obj.state = state.stop
      	obj.global_time_0 = 0
+     	obj.t_init = 0
 
 	function obj:eventHandler(e)	
 		if self.state ~= state.stop then	
 	      	if e == Ev.SYNC_START then
-	      		local TIME_AFTER_TAKEOFF = 1
-	    		local TIME_PREPARE_TAKEOFF = 3
-
-	        	self.state = state.takeoff
-		        ap.push(Ev.MCE_PREFLIGHT) 
-		        sleep(TIME_PREPARE_TAKEOFF)
-		        ap.push(Ev.MCE_TAKEOFF) -- Takeoff altitude should be set by AP parameter
-		        self.state = state.flight
-		        self.global_time_0 = getGlobalTime() + TIME_AFTER_TAKEOFF
-		        Timer.callAtGlobal(self.global_time_0, function () self:animLoop(1) end)
+	      		self:animInit(1, 1, 3)
 			end
 		end
 	end
 
+	function obj:animInit(time_after_prepare, time_after_takeoff, init_index)
+		self.state = state.flight
+        ap.push(Ev.MCE_PREFLIGHT) 
+        sleep(time_after_prepare)
+        ap.push(Ev.MCE_TAKEOFF) -- Takeoff altitude should be set by AP parameter
+        self.t_init = Point.getPoint(init_index)
+        self.global_time_0 = getGlobalTime() + time_after_takeoff
+        Timer.callAtGlobal(self.global_time_0, 	function () self:animLoop(init_index) end)
+	end
+
 	function obj:animLoop(point_index)
-   		local t, x, y, z
       	if self.state == state.flight and point_index <= 10 then
-	        t, x, y, z = Point.getPoint(point_index)
-	        point_index = point_index + 1
+	        local _, x, y, z = Point.getPoint(point_index)
+	        local t = Point.getPoint(point_index + 1)
 	        ap.goToLocalPoint(x, y, z)
-	        Timer.callAtGlobal(self.global_time_0 + t, function () self:animLoop(point_index) end)
+	        Timer.callAtGlobal(self.global_time_0 + t - self.t_init, function () self:animLoop(point_index + 1) end)
     	else
     		self.state = state.landing
     		ap.push(Ev.MCE_LANDING)
