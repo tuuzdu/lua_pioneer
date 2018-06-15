@@ -17,11 +17,15 @@ function sleep(n)  -- seconds
    while clock() - t0 <= n do end
 end
 
-local time = os.time
-function getGlobal()
-   t = time()
+local timeOs = os.time
+function time()
+   t = timeOs()
    print("getGlobal: " .. t)
    return t
+end
+
+function deltaTime()
+   return 0
 end
 
 
@@ -54,7 +58,7 @@ function Timer.callLate(n, func)
 end
 
 function Timer.callAtGlobal(n, func)
-   while time() - n <= 0 do end
+   while timeOs() - n <= 0 do end
    print('callAtGlobal: '..n)
    func()
 end
@@ -64,6 +68,7 @@ return {
    Ev = Ev,
    ap = ap,
    sleep = sleep,
-   getGlobal = getGlobal,
+   time = time,
+   deltaTime = deltaTime,
    Timer = Timer
 }
