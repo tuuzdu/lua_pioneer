@@ -63,6 +63,19 @@ function Timer.callAtGlobal(n, func)
    func()
 end
 
+Ledbar = {}
+
+function Ledbar.new(count)
+   local obj = {leds = count} 
+   Ledbar.__index = Ledbar 
+   print('Ledbar: '.. count)
+   return setmetatable(obj, Ledbar)
+end
+
+function Ledbar:set(i, r, g, b)
+   print('led_'..i..' :'..r..g..b)
+end
+
 return {
    dump = dump,
    Ev = Ev,
@@ -70,5 +83,6 @@ return {
    sleep = sleep,
    time = time,
    deltaTime = deltaTime,
-   Timer = Timer
+   Timer = Timer,
+   Ledbar = Ledbar
 }
