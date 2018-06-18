@@ -73,7 +73,7 @@ function Ledbar.new(count)
 end
 
 function Ledbar:set(i, r, g, b)
-   print('led_'..i..' :'..r..g..b)
+   print('led_'..i..' : '..r..' '..g..' '..b)
 end
 
 return {

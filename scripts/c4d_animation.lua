@@ -20,7 +20,7 @@ function Animation.new(points_str, colors_str)
 
 	local state = {stop = 0, idle = 1, takeoff = 2, flight = 3, landing = 4}
 
-	local function getGlobalTime()	
+	local function getGlobalTime()
 		return time() + deltaTime()
 	end
 
@@ -30,97 +30,100 @@ function Animation.new(points_str, colors_str)
 		Color.first_led = 4
 		Color.last_led = 28
 		Color.leds = Ledbar.new(29)
-    
-    function Color.getColor(index)
-        local t, _, _, _, r, g, b, _ = strUnpack(str_format, Color.colors_str, 1 + index * Color.colors_str_size)
-        t = t / 1000
-        r = r / 255
-        g = g / 255
-        b = b / 255
-        return t, r, g, b
-    end
+	
+	function Color.getColor(index)
+		local t, _, _, _, r, g, b, _ = strUnpack(str_format, Color.colors_str, 1 + index * Color.colors_str_size)
+		t = t / 1000
+		r = r / 255
+		g = g / 255
+		b = b / 255
+		return t, r, g, b
+	end
 
-    function Color.setMatrix(r, g, b)
+	function Color.setMatrix(r, g, b)
 		for i = Color.first_led, Color.last_led, 1 do
 			Color.leds:set(i, r, g, b)
 		end
-    end
+	end
 
 	local Point = {}
 		Point.points_str_size = string.packsize(str_format)
 		Point.points_str = points_str
+		Point.setPoint = ap.goToLocalPoint
 
-    function Point.getPoint(index)
-        local t, x, y, z = strUnpack(str_format, Point.points_str, 1 + index * Point.points_str_size)
-        t = t / 1000
-        x = x / 100
-        y = y / 100
-        z = z / 100
-        return t, x, y, z
-    end
+	function Point.getPoint(index)
+		local t, x, y, z = strUnpack(str_format, Point.points_str, 1 + index * Point.points_str_size)
+		t = t / 1000
+		x = x / 100
+		y = y / 100
+		z = z / 100
+		return t, x, y, z
+	end
 
-    local Config = {}
-    		Config.t_after_prepare = 1
-	    	Config.t_after_takeoff = 1
-	    	Config.init_index = 1
-	    	Config.last_index = points_count
+	local Config = {}
+			Config.t_after_prepare = 1
+			Config.t_after_takeoff = 1
+			Config.init_index = 1
+			Config.last_index = points_count
 
 	local obj = {}
-    	obj.state = state.stop
-     	obj.global_time_0 = 0
-     	obj.t_init = 0
+		obj.state = state.stop
+		obj.global_time_0 = 0
+		obj.t_init = 0
+
+	function obj.setConfig(init_index, last_index, time_after_prepare, time_after_takeoff)
+		Config.init_index = init_index or 1
+		Config.last_index = last_index or points_count
+		Config.t_after_prepare = time_after_prepare or 1
+		Config.t_after_takeoff = time_after_takeoff or 1
+	end
 
 	function obj:eventHandler(e)	
 		if self.state ~= state.stop then	
-	      	if e == Ev.SYNC_START then
-	      		self.global_time_0 = getGlobalTime() + Config.t_after_prepare + Config.t_after_takeoff
-	      		self:animInit()
+			if e == Ev.SYNC_START then
+				self.global_time_0 = getGlobalTime() + Config.t_after_prepare + Config.t_after_takeoff
+				self:animInit()
 			end
 		end
 	end
 
-	function obj.setConfig(init_index, last_index, time_after_prepare, time_after_takeoff)
-    	Config.init_index = init_index or 1
-    	Config.last_index = last_index or points_count
-    	Config.t_after_prepare = time_after_prepare or 1
-    	Config.t_after_takeoff = time_after_takeoff or 1
-	end
-
 	function obj:animInit()
 		self.state = state.flight
-        ap.push(Ev.MCE_PREFLIGHT) 
-        sleep(Config.t_after_prepare)
-        ap.push(Ev.MCE_TAKEOFF) -- Takeoff altitude should be set by AP parameter
-        self.t_init = Point.getPoint(Config.init_index)
-        Timer.callAtGlobal(self.global_time_0, 	function () self:animLoop(Config.init_index) end)
+		ap.push(Ev.MCE_PREFLIGHT) 
+		sleep(Config.t_after_prepare)
+		ap.push(Ev.MCE_TAKEOFF) -- Takeoff altitude should be set by AP parameter
+		self.t_init = Point.getPoint(Config.init_index)
+		Timer.callAtGlobal(self.global_time_0, 	function () self:animLoop(Config.init_index) end)
 	end
 
 	function obj:animLoop(point_index)
-      	if self.state == state.flight and point_index <= Config.last_index then
-	        local _, x, y, z = Point.getPoint(point_index)
-	        local t = Point.getPoint(point_index + 1)
-	        ap.goToLocalPoint(x, y, z)
-	        Timer.callAtGlobal(self.global_time_0 + t - self.t_init, function () self:animLoop(point_index + 1) end)
-    	else
-    		self.state = state.landing
-    		ap.push(Ev.MCE_LANDING)
-    	end
-   	end
+	  	if self.state == state.flight and point_index <= Config.last_index then
+			local _, x, y, z = Point.getPoint(point_index)
+			local _, r, g, b = Color.getColor(point_index)
+			local t = Point.getPoint(point_index + 1)
+			Color.setMatrix(r, g, b)
+			Point.setPoint(x, y, z)
+			Timer.callAtGlobal(self.global_time_0 + t - self.t_init, function () self:animLoop(point_index + 1) end)
+		else
+			self.state = state.landing
+			ap.push(Ev.MCE_LANDING)
+		end
+	end
 
-   	function obj:start()
-   		self.state = state.idle
-   	end
+	function obj:start()
+		self.state = state.idle
+	end
 
 	Animation.__index = Animation 
 	return setmetatable(obj, Animation)
 end
 
 function callback(event)
-   anim:eventHandler(event)
+	anim:eventHandler(event)
 end
 
 anim = Animation.new(points, _)
-anim.setConfig(3, 5)
+anim.setConfig(3, 10)
 anim:start()
 -- print (dump(anim))
 
