@@ -18,7 +18,7 @@ function Animation.new(points_str, colors_str)
 	local tblUnpack = table.unpack   
 	local strUnpack = string.unpack
 
-	local state = {stop = 0, idle = 1, takeoff = 2, flight = 3, landing = 4}
+	local state = {stop = 0, idle = 1, flight = 2, landed = 3}
 
 	local function getGlobalTime()
 		return time() + deltaTime()
@@ -61,7 +61,7 @@ function Animation.new(points_str, colors_str)
 	end
 
 	local Config = {}
-			Config.t_after_prepare = 1
+			Config.t_after_prepare = 2
 			Config.t_after_takeoff = 1
 			Config.init_index = 1
 			Config.last_index = points_count
@@ -74,7 +74,7 @@ function Animation.new(points_str, colors_str)
 	function obj.setConfig(init_index, last_index, time_after_prepare, time_after_takeoff)
 		Config.init_index = init_index or 1
 		Config.last_index = last_index or points_count
-		Config.t_after_prepare = time_after_prepare or 1
+		Config.t_after_prepare = time_after_prepare or 2
 		Config.t_after_takeoff = time_after_takeoff or 1
 	end
 
@@ -97,7 +97,7 @@ function Animation.new(points_str, colors_str)
 	end
 
 	function obj:animLoop(point_index)
-	  	if self.state == state.flight and point_index <= Config.last_index then
+	  	if self.state == state.flight and point_index < Config.last_index then
 			local _, x, y, z = Point.getPoint(point_index)
 			local _, r, g, b = Color.getColor(point_index)
 			local t = Point.getPoint(point_index + 1)
@@ -110,8 +110,13 @@ function Animation.new(points_str, colors_str)
 		end
 	end
 
+	function obj:spin()
+		self.state = state.idle
+	end
+
 	function obj:start()
 		self.state = state.idle
+		self:eventHandler(Ev.SYNC_START)
 	end
 
 	Animation.__index = Animation 
@@ -124,7 +129,7 @@ end
 
 anim = Animation.new(points, _)
 anim.setConfig(3, 10)
-anim:start()
+anim:spin()
 -- print (dump(anim))
 
 callback(Ev.SYNC_START)
