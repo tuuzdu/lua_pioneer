@@ -49,7 +49,7 @@ function Path:start()
 	if self.point[1].takeoff then
 		self.state = 1
 		ap.push(Ev.MCE_PREFLIGHT) 
-		sleep(2)
+		sleep(1)
 		ap.push(Ev.MCE_TAKEOFF)
 	end
 end
@@ -84,7 +84,7 @@ function Path:eventHandler( e )
 		end
 
 		if obj_state.waypoint then
-			ap.goToLocalPoint( self.point[self.state].x, self.point[self.state].y, self.point[self.state].z )
+			ap.goToLocalPoint(self.point[self.state].x, self.point[self.state].y, self.point[self.state].z)
 		elseif obj_state.takeoff then
 			ap.push(Ev.MCE_PREFLIGHT) 
 			sleep(1)
@@ -112,15 +112,15 @@ local led_count = 29
 local matrix_count = 25
 local led_offset = 4
 local leds = Ledbar.new(led_count)
-local colors = {	purple = 	{r=1, g=0, b=1}, 
-					cyan = 		{r=0, g=1, b=1}, 
-					yellow = 	{r=1, g=1, b=0}, 
-					blue = 		{r=0, g=0, b=1}, 
-					red = 		{r=1, g=0, b=0}, 
-					green = 	{r=0, g=1, b=0}, 
-					white = 	{r=1, g=1, b=1}, 
-					black = 	{r=0, g=0, b=0},
-					brown = 	{r=0.6, g=0.25, b=0.15}
+local colors = {	purple = 	{1, 0, 1}, 
+					cyan = 		{0, 1, 1}, 
+					yellow = 	{1, 1, 0}, 
+					blue = 		{0, 0, 1}, 
+					red = 		{1, 0, 0}, 
+					green = 	{0, 1, 0}, 
+					white = 	{1, 1, 1}, 
+					black = 	{0, 0, 0},
+					brown = 	{0.6, 0.25, 0.15}
 				}
 
 -- Возвращает указатель на функцию включения матрицы заданным цветом
@@ -167,12 +167,12 @@ local tree = {
 }
 
 -- Создание нового объекта Path
-tree_path = Path.new()
-tree_path:addTakeoff()
+my_path = Path.new()
+my_path:addTakeoff()
 for _, v in ipairs(tree) do
-	tree_path:addWaypoint(unpack(v))
+	my_path:addWaypoint(unpack(v))
 end
-tree_path:addLanding()
+my_path:addLanding()
 
 -- Старт выполнения полетного задания
-tree_path:start()
+my_path:start()
