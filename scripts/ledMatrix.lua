@@ -2,10 +2,10 @@
 -- а также вывод цифр на матрицу.
 
 local led_count = 29													-- Общее количество светодиодов (4 на плате + 25 на матрице = 29)
-local matrix_count = 25													-- Количество светодиодов на плате
-local led_offset = 4													-- Количество светодиодов на матрице
-local leds = Ledbar.new(led_count)		
-local unpack = table.unpack												-- Создание нового объекта Ledbar для управления светодиодами
+local led_offset = 4													-- Количество светодиодов на плате
+local matrix_count = 25													-- Количество светодиодов на матрице
+local leds = Ledbar.new(led_count)										-- Создание порта управления светодиодами
+local unpack = table.unpack												-- Ассоциируем функцию распаковки таблиц из модуля table для упрощения
 local colors = {	red = 		{1, 0, 0},								-- Таблица цветов в RGB. Яркость цвета задается диапазоном от 0 до 1
 					green = 	{0, 1, 0}, 
 					blue = 		{0, 0, 1},
@@ -70,12 +70,12 @@ function digitOutput()
 
 	for i = 0, 5, 1 do
 		for col = 0, 360, 1 do
-			colors_any[1],  colors_any[2], colors_any[3] = fromHSV(col, 100, 10)								-- Генерация цвета
-			setDig (i, colors_any)									-- Запись цифры в массив заданного цвета
-			updateMatrix()														-- Вывод массива на матрицу
-			sleep(0.1)															-- Небольшой таймаут
+			colors_any[1],  colors_any[2], colors_any[3] = fromHSV(col, 100, 10)	-- Генерация цвета
+			setDig (i, colors_any)													-- Запись цифры в массив заданного цвета
+			updateMatrix()															-- Вывод массива на матрицу
+			sleep(0.01)																-- Небольшой таймаут
 		end
-		fillMatrix(colors.black)												-- Очистка массива матрицы перед записью новой цифры
+		fillMatrix(colors.black)													-- Очистка массива матрицы перед записью новой цифры
 	end
 	fillMatrix(colors.black)
 	updateMatrix()
