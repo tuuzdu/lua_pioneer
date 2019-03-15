@@ -1,5 +1,7 @@
-
 -- Скрипт реализует полет по заданию. Позволяет добавлять полет в точку, взлет и посадку, а также выполнять функции, после этих действий.
+
+--Ассоциируем функцию распаковки таблиц из модуля table для упрощения
+local unpack = table.unpack
 
 -- Класс Path
 local Path = {}
@@ -45,12 +47,10 @@ end
 
 -- Запуск выполнения полетного задания
 function Path:start()
-	sleep(1)
 	if self.point[1].takeoff then
 		self.state = 1
 		ap.push(Ev.MCE_PREFLIGHT) 
-		sleep(1)
-		ap.push(Ev.MCE_TAKEOFF)
+		Timer.callLater(1, function() ap.push(Ev.MCE_TAKEOFF) end)
 	end
 end
 
@@ -84,11 +84,10 @@ function Path:eventHandler( e )
 		end
 
 		if obj_state.waypoint then
-			ap.goToLocalPoint( {x = self.point[self.state].x, y = self.point[self.state].y, z = self.point[self.state].z} )
+			ap.goToLocalPoint( obj_state.x, obj_state.y, obj_state.z )
 		elseif obj_state.takeoff then
-			ap.push(Ev.MCE_PREFLIGHT) 
-			sleep(1)
-			ap.push(Ev.MCE_TAKEOFF)
+			Timer.callLater(2, function() ap.push(Ev.MCE_PREFLIGHT) end)
+			Timer.callLater(3, function() ap.push(Ev.MCE_TAKEOFF) end)
 		elseif obj_state.landing then
 			ap.push(Ev.MCE_LANDING)
 		end
@@ -103,21 +102,21 @@ end
 
 -- Функция, вызываемая при появлении событий
 function callback( event )
-	my_path:eventHandler(event) -- Обработчик событий для объекты my_path
+	my_path:eventHandler(event) -- Обработчик событий для объекта my_path
 end
 
 function loop()
 end
 
 -- Таблица цветов в RGB. Яркость цвета задается диапазоном от 0 до 1
-local colors = {	red = 		{r=1, g=0, b=0},						
-					green = 	{r=0, g=1, b=0}, 
-					blue = 		{r=0, g=0, b=1},
-					purple = 	{r=1, g=0, b=1}, 		
-					cyan = 		{r=0, g=1, b=1}, 
-					yellow = 	{r=1, g=1, b=0}, 
-					white = 	{r=1, g=1, b=1}, 
-					black = 	{r=0, g=0, b=0}	}
+local colors = {	red = 		{1, 0, 0},				
+					green = 	{0, 1, 0},
+					blue = 		{0, 0, 1},
+					purple = 	{1, 0, 1},
+					cyan = 		{0, 1, 1},
+					yellow = 	{1, 1, 0},
+					white = 	{1, 1, 1},
+					black = 	{0, 0, 0}    }
 
 local led_count = 4	-- Количество используемых светодиодов
 local leds = Ledbar.new(led_count)  -- Создает новый Ledbar для управления светодиодами
@@ -126,7 +125,7 @@ local leds = Ledbar.new(led_count)  -- Создает новый Ledbar для �
 local function getSysLeds( color )
 	return function()
 		for i = 0, led_count - 1, 1 do
-			leds:set(i, color)
+			leds:set(i, unpack(color))
 		end
 	end
 end
@@ -141,17 +140,15 @@ my_path = Path.new()
 
 -- Составление полетного задания
 my_path:addTakeoff(red)						-- Взлет. После взлета зажечь светодиоды красным цветом
-my_path:addWaypoint(0.5, 0.5, 1, blue)		-- Следовать к точке. После достижения - зажечь светодиоды синим цветом
-my_path:addWaypoint(-0.5, 0.5, 1, red)		-- Следовать к точке. После достижения - зажечь светодиоды красным цветом
-my_path:addWaypoint(0.5, -0.5, 1)
+my_path:addWaypoint(0, 0, 0.8, blue)		-- Следовать к точке. После достижения - зажечь светодиоды синим цветом
+my_path:addWaypoint(0, 1, 1, red)	    	
+my_path:addWaypoint(0.5, 1, 1)
 my_path:addLanding()						-- Приземление
-my_path:addTakeoff()
-my_path:addWaypoint(0, 0, 1)
+my_path:addTakeoff(blue)
+my_path:addWaypoint(0, 0.5, 1)
 my_path:addLanding()
 
-my_path:addFuncForPoint(yellow, 7)			-- Добавление функции зажигания светодиодом желтым цветом точке с номером 7 (my_path:addWaypoint(0, 0, 1))
+my_path:addFuncForPoint(red, 7)			-- Добавление функции зажигания светодиода красным цветом в точке с номером 7 (my_path:addWaypoint(0, 0.5, 1))
 
 -- Старт выполнения полетного задания
 my_path:start()
-
-
