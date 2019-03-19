@@ -24,20 +24,24 @@ local function setLed(state)
     end
 end
 
--- Обязательная функция обработки событий
-function callback(event)
-end
-
--- Создание таймера, вызывающего функцию каждую секунуду
-cargoTimer = Timer.new(1, function ()
+-- Функция переключения магнита
+local function toggleMagnet()
     if (magnet_state == true) then  -- Если магнит включен, то выключаем его
         magnet:reset()
     else                            -- Если выключен, то включаем
         magnet:set()
     end
     magnet_state = not magnet_state -- Инвертируем переменную состояния
-    setLed(magnet_state)            -- Устанавливаем цвет светодиодов в зависимости от состояния
-end)
+end
 
+-- Обязательная функция обработки событий
+function callback(event)
+end
+
+-- Создание таймера, вызывающего функцию каждую секунуду
+cargoTimer = Timer.new(1, function ()
+    toggleMagnet()
+    setLed(magnet_state)
+end)
 -- Запуск таймера
 cargoTimer:start()
