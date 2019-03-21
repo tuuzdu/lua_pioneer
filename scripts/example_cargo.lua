@@ -14,7 +14,7 @@ local magnet_state = true
 
 -- Функция, устанавливающая цвет светодиодов в зависимости от состояния магнита
 local function setLed(state)
-    if (state = true) then
+    if (state == true) then
         color = {1,1,1}                  -- Если магнит включен, то белый цвет
     else
         color = {0,0,0}                  -- Если магнит выключен, то черный (светодиоды не горят)
