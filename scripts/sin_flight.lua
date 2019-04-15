@@ -84,12 +84,10 @@ local function nextPoint()
     changeColor(colors[curr_color])
     -- Полет к текущей точке, если её номер не больше количества заданных точек
     if(curr_point <= #points) then
-        Timer.callLater(1, function()
-            -- Команда полета к точке в системе позиционирования
-            ap.goToLocalPoint(unpack(points[curr_point]))
-            -- Инкрементация переменной текущей точки
-            curr_point = curr_point + 1
-        end)
+        -- Команда полета к точке в системе позиционирования
+        ap.goToLocalPoint(unpack(points[curr_point]))
+        -- Инкрементация переменной текущей точки
+        curr_point = curr_point + 1
     -- Посадка, если номер текущей точки больше количества заданных точек
     else
         Timer.callLater(1, function()
