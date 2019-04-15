@@ -43,11 +43,13 @@ local points = {}
 --]]
 
 -- Амплитуда синусоиды в метрах
-local sinA = 1
+local sinA = 0.5
 -- Период синусоиды в метрах
 local sinT = 1.5
 -- Протяженность синусоиды в метрах
 local sinL = 2.5
+-- Высота полета по синусоиде
+local sinH = 0.7
 -- Количество точек на один период синусоиды
 local sinNumPerT = 8
 -- Направление синусоиды (Y -- вперёд (по-умолчанию), 'X','x' -- вправо)
@@ -58,7 +60,6 @@ local sinStep = sinT/sinNumPerT
 -- Общее количество точек на синусоиду
 local sinNum = math.floor(sinNumPerT * (sinL / sinT))
 
-
 -- Генерация точек синусоиды
 for i = 0, sinNum, 1 do
     if sinDir == 'X' or sinDir == 'x' then
@@ -66,9 +67,9 @@ for i = 0, sinNum, 1 do
         y = sinA * math.sin(2*math.pi/sinT * x)
     else
         y = i * sinStep
-        y = sinA * math.sin(2*math.pi/sinT * y)
+        x = sinA * math.sin(2*math.pi/sinT * y)
     end
-    points[#points+1] = {x,y}
+    points[#points+1] = {x, y, sinH}
 end
 
 -- Счетчик точек
@@ -113,7 +114,6 @@ function callback(event)
         changeColor(colors[8])
     end
 end
-
 
 
 -- Предстартовая подготовка
