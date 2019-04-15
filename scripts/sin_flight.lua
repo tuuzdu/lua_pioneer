@@ -101,17 +101,13 @@ end
 
 -- Функция обработки событий, автоматически вызывается автопилотом
 function callback(event)
-    -- Когда коптер поднялся на высоту взлета Flight_com_homeAlt, переходим к полету по точкам
-    if(event == Ev.ALTITUDE_REACHED) then
-        nextPoint()
-    end
     -- Когда коптер приближается к точке, переходим к следующей
     if(event == Ev.POINT_DECELERATION) then
-        nextPoint()
-    end
-    -- Когда коптер достиг текущей точки, переходим к следующей
-    if(event == Ev.POINT_REACHED) then
-        nextPoint()
+        if curr_point == 1 then
+        	Timer.callLater(1, function() nextPoint() end)
+        else
+        	nextPoint()
+        end
     end
     -- Когда коптер приземлился, выключаем светодиоды
     if (event == Ev.COPTER_LANDED) then
