@@ -8,7 +8,7 @@ local ledFirst = 4
 -- Последний светодиод
 local ledLast = 29
 -- Создание порта управления светодиодами
-local leds = Ledbar.new(ledNumber)
+local leds = Ledbar.new(ledLast)
 
 -- Функция смены цвета светодиодов
 local function changeColor(color)
