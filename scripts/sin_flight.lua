@@ -103,6 +103,10 @@ function callback(event)
     if(event == Ev.ALTITUDE_REACHED) then
         nextPoint()
     end
+    -- Когда коптер приближается к точке, переходим к следующей
+    if(event == Ev.POINT_DECELERATION) then
+        nextPoint()
+    end
     -- Когда коптер достиг текущей точки, переходим к следующей
     if(event == Ev.POINT_REACHED) then
         nextPoint()
