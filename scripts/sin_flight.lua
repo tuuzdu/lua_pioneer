@@ -74,6 +74,18 @@ for i = 0, sinNum, 1 do
     points[#points+1] = {x, y, sinH}
 end
 
+-- Генерация точек синусоиды
+for i = sinNum, 0, -1 do
+    if sinDir == 'X' or sinDir == 'x' then
+        x = i * sinStep
+        y = -sinA * math.sin(2*math.pi/sinT * x)
+    else
+        y = i * sinStep
+        x = -sinA * math.sin(2*math.pi/sinT * y)
+    end
+    points[#points+1] = {x, y, sinH}
+end
+
 -- Счетчик точек
 local curr_point = 1
 
