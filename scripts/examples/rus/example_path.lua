@@ -1,6 +1,6 @@
 -- Скрипт реализует полет по заданию. Позволяет добавлять полет в точку, взлет и посадку, а также выполнять функции, после этих действий.
 
---Ассоциируем функцию распаковки таблиц из модуля table для упрощения
+-- Упрощение вызова функции распаковки таблиц из модуля table
 local unpack = table.unpack
 
 -- Класс Path
@@ -13,7 +13,8 @@ function Path.new()
 	return setmetatable( obj, Path )
 end
 
--- Добавляет точку пути. Аргументы: x, y, z - координаты в метрах; func - ссылка на функцию, выполняемую после достижения точки (необязательный аргумент).
+-- Добавляет точку пути
+-- Аргументы: x, y, z - координаты в метрах; func - ссылка на функцию, выполняемую после достижения точки (необязательный аргумент).
 function Path:addWaypoint( _x, _y, _z, _func )
 	local point = { x = _x, y = _y, z = _z, waypoint = true }
 	table.insert( self.point, point )
@@ -22,7 +23,8 @@ function Path:addWaypoint( _x, _y, _z, _func )
 	end
 end
 
--- Добавляет взлет на высоту, указанную в параметрах (Flight_common_takeoffAltitude). Аргументы: func - ссылка на функцию, выполняемую после достижения высоты взлета (необязательный аргумент).
+-- Добавляет взлет на высоту, указанную в параметрах (Flight_com_takeoffAlt)
+-- Аргументы: func - ссылка на функцию, выполняемую после достижения высоты взлета (необязательный аргумент).
 function Path:addTakeoff( _func )
 	table.insert( self.point, { takeoff = true } )
 	if _func then
@@ -38,7 +40,8 @@ function Path:addLanding( _func )
 	end
 end
 
--- Добавляет функцию к указанному номеру точки пути. Аргументы: func - ссылка на функцию, выполняемую после действия; point_index - номер точки пути.
+-- Добавляет функцию к указанному номеру точки пути
+-- Аргументы: func - ссылка на функцию, выполняемую после действия; point_index - номер точки пути.
 function Path:addFuncForPoint( _func, point_index )
 	if self.point[point_index] and _func then
 		self.point[point_index].func = _func
@@ -121,7 +124,8 @@ local colors = {	red = 		{1, 0, 0},
 local led_count = 4	-- Количество используемых светодиодов
 local leds = Ledbar.new(led_count)  -- Создает новый Ledbar для управления светодиодами
 
--- Фукция установки желаемого цвета на светодиодах на плате (четыре штуки). Возвращает ссылку на функцию. Ссылка нужна для передачи функции точке пути.
+-- Фукция установки желаемого цвета на светодиодах на плате (четыре штуки).
+-- Возвращает ссылку на функцию. Ссылка нужна для передачи функции точке пути.
 local function getSysLeds( color )
 	return function()
 		for i = 0, led_count - 1, 1 do
@@ -139,16 +143,16 @@ yellow = getSysLeds(colors.yellow)
 my_path = Path.new()
 
 -- Составление полетного задания
-my_path:addTakeoff(red)						-- Взлет. После взлета зажечь светодиоды красным цветом
-my_path:addWaypoint(0, 0, 0.8, blue)		-- Следовать к точке. После достижения - зажечь светодиоды синим цветом
+my_path:addTakeoff(red)				  -- Взлет. После взлета зажечь светодиоды красным цветом
+my_path:addWaypoint(0, 0, 0.8, blue)  -- Следовать к точке. После достижения - зажечь светодиоды синим цветом
 my_path:addWaypoint(0, 1, 1, red)	    	
 my_path:addWaypoint(0.5, 1, 1)
-my_path:addLanding()						-- Приземление
+my_path:addLanding()				  -- Приземление
 my_path:addTakeoff(blue)
 my_path:addWaypoint(0, 0.5, 1)
 my_path:addLanding()
 
-my_path:addFuncForPoint(red, 7)			-- Добавление функции зажигания светодиода красным цветом в точке с номером 7 (my_path:addWaypoint(0, 0.5, 1))
+my_path:addFuncForPoint(red, 7)		  -- Добавление функции зажигания светодиода красным цветом в точке с номером 7 (my_path:addWaypoint(0, 0.5, 1))
 
 -- Старт выполнения полетного задания
 my_path:start()
