@@ -64,8 +64,8 @@ end
 
 -- Event processing function called automatically by autopilot
 function callback(event)
-    -- After Pioneer reaches Flight_com_homeAlt, it start mission flight
-    if(event == Ev.ALTITUDE_REACHED) then
+    -- After Pioneer reaches Flight_com_takeoffAlt, it starts mission flight
+    if(event == Ev.TAKEOFF_COMPLETE) then
         nextPoint()
     end
     -- When Pioneer reaches current point it initiates flight to next point
