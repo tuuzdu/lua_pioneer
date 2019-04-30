@@ -13,7 +13,7 @@ local colors = {	red = 		{1, 0, 0},								-- Таблица цветов в RGB
 					cyan = 		{0, 1, 1}, 
 					yellow = 	{1, 1, 0}, 
 					white = 	{1, 1, 1}, 
-					black = 	{0, 0, 0}}								-- black - светодиоды выключены
+					black = 	{0, 0, 0}}								-- черный = светодиоды выключены
 
 local dig = {	{3, 7, 8, 13, 18, 22, 23, 24},							-- 1 Таблица символов цифр
 				{2, 3, 4, 9, 12, 13, 14, 17, 22, 23, 24},				-- 2
@@ -68,22 +68,27 @@ end
 function callback( event )
 end
 
--- Пример. Программа выводит цифры от 0 до 5, при этом изменяя цвет от красного к фиолетовому
-function digitOutput() 
-
-	colors_any = {0,0,0}	
-
-	for i = 0, #dig, 1 do
-		for col = 0, 360, 1 do
-			colors_any[1],  colors_any[2], colors_any[3] = fromHSV(col, 100, 10)	-- Генерация цвета
-			setDig (i, colors_any)													-- Запись цифры в массив заданного цвета
-			updateMatrix()															-- Вывод массива на матрицу
-			sleep(0.005)															-- Пауза (период, через который обновляется цвет)
-		end
-		fillMatrix(colors.black)													-- Очистка массива матрицы перед записью новой цифры
+-- Пример. Программа выводит цифры от 0 до 9, при этом изменяя цвет от красного к фиолетовому
+function digitOutput()
+	colors_any[1],  colors_any[2], colors_any[3] = fromHSV(col, 100, 10)	-- Генерация цвета
+	setDig (i, colors_any)													-- Запись цифры в массив заданного цвета
+	updateMatrix()															-- Вывод массива на матрицу
+	if col < 360 then                                                       
+		col = col + 1                                                       -- Изменение значения цвета
+	elseif i < #dig-1 then                                                   
+		fillMatrix(colors.black)                                            -- Очистка массива матрицы перед записью новой цифры
+		col = 0                                                             -- Обнуление значения цвета
+		i = i + 1                                                           -- Увеличение переменной цифры
+	else
+		fillMatrix(colors.black)
+		col = 0                                                             -- Обнуление значения цвета
+		i = 0                                                               -- Обнуление значения цифры
 	end
-	fillMatrix(colors.black)
-	updateMatrix()
+	Timer.callLater(0.003, function () digitOutput() end)                   -- Период, через который обновляется цвет
 end
 
-Timer.callLater(0.1, digitOutput)
+
+colors_any = {0,0,0}    -- Переменная цвета в формате RGB
+i = 0                   -- Переменная выводимой цифры
+col = 0                 -- Переменная цвета в формате HSV
+digitOutput()           -- Запуск программы
