@@ -68,22 +68,27 @@ end
 function callback( event )
 end
 
--- Example. This function outputs digits from 0 to 5 while changing colors from red to violet
-function digitOutput() 
-
-	colors_any = {0,0,0}	
-
-	for i = 0, #dig, 1 do
-		for col = 0, 360, 1 do
-			colors_any[1],  colors_any[2], colors_any[3] = fromHSV(col, 100, 10)	-- Color generation
-			setDig (i, colors_any)													-- Loading digit to array of set color
-			updateMatrix()															-- Array output to matrix
-			sleep(0.005)															-- Pause (Time between color updates)
-		end
-		fillMatrix(colors.black)													-- Clearing matrix array before loading new digit
+-- Example. This function outputs digits from 0 to 9 while changing colors from red to violet
+function digitOutput()
+	colors_any[1],  colors_any[2], colors_any[3] = fromHSV(col, 100, 10)	-- Color generation
+	setDig (i, colors_any)													-- Loading digit to array of set color
+	updateMatrix()															-- Array output to matrix
+	if col < 360 then                                                       
+		col = col + 1                                                       -- Increasing color value
+	elseif i < #dig-1 then                                                   
+		fillMatrix(colors.black)                                            -- Clearing matrix array before loading new digit
+		col = 0                                                             -- Zeroing color value
+		i = i + 1                                                           -- Increasing digit value
+	else
+		fillMatrix(colors.black)
+		col = 0                                                             -- Zeroing color value
+		i = 0                                                               -- Zeroing digit value
 	end
-	fillMatrix(colors.black)
-	updateMatrix()
+	Timer.callLater(0.003, function () digitOutput() end)                   -- Color updating period
 end
 
-Timer.callLater(0.1, digitOutput)
+
+colors_any = {0,0,0}    -- Color variable in RGB-format
+i = 0                   -- Digit variable
+col = 0                 -- Color variable in HSV-format
+digitOutput()           -- Start program
