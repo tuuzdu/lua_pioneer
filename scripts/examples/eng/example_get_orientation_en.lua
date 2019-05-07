@@ -7,7 +7,6 @@ local ledNumber = 4
 -- RGB LED control port initialize
 local leds = Ledbar.new(ledNumber)
 
--- Максимальные значения крена, тангажа и рыскания для удобства вывода информации
 -- Maximum values for roll, pitch and yaw for user-friendly output
 local maxRoll, maxPitch, maxYaw = 180, 90, 180
 
