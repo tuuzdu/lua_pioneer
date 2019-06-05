@@ -60,7 +60,7 @@ function Path:eventHandler( e )
 	local change_state = false
 	local obj_state = self.point[self.state]
 
-	if e == Ev.ALTITUDE_REACHED and obj_state.takeoff then
+	if e == Ev.TAKEOFF_COMPLETE and obj_state.takeoff then
 		change_state = true
 	elseif e == Ev.POINT_REACHED and obj_state.waypoint then
 		change_state = true
