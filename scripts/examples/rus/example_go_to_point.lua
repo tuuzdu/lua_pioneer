@@ -64,8 +64,8 @@ end
 
 -- Функция обработки событий, автоматически вызывается автопилотом
 function callback(event)
-    -- Когда коптер поднялся на высоту взлета Flight_com_homeAlt, переходим к полету по точкам
-    if(event == Ev.ALTITUDE_REACHED) then
+    -- Когда коптер поднялся на высоту взлета Flight_com_takeoffAlt, переходим к полету по точкам
+    if(event == Ev.TAKEOFF_COMPLETE) then
         nextPoint()
     end
     -- Когда коптер достиг текущей точки, переходим к следующей
